@@ -5,14 +5,16 @@
 
 # ---- 1. Dependências ----
 FROM node:20-alpine AS deps
-RUN corepack enable
+# Instala o pnpm com versão fixa (compatível com lockfileVersion 9.0),
+# evitando a variação do corepack que causava falha no build.
+RUN npm install -g pnpm@9.15.0
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ---- 2. Build ----
 FROM node:20-alpine AS builder
-RUN corepack enable
+RUN npm install -g pnpm@9.15.0
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
