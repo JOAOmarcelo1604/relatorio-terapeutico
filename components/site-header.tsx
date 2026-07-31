@@ -13,14 +13,21 @@ import { sair } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
 
 const links = [
-  { href: "/", label: "Feedbacks", icon: ClipboardList },
-  { href: "/pacientes", label: "Pacientes", icon: Users },
-  { href: "/terapeutas", label: "Terapeutas", icon: UserCog },
+  { href: "/", label: "Feedbacks", icon: ClipboardList, adminOnly: false },
+  { href: "/pacientes", label: "Pacientes", icon: Users, adminOnly: false },
+  { href: "/terapeutas", label: "Terapeutas", icon: UserCog, adminOnly: true },
 ]
 
-export function SiteHeader({ nome }: { nome?: string | null }) {
+export function SiteHeader({
+  nome,
+  admin = false,
+}: {
+  nome?: string | null
+  admin?: boolean
+}) {
   const pathname = usePathname()
   const logada = Boolean(nome)
+  const linksVisiveis = links.filter((l) => !l.adminOnly || admin)
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/70 backdrop-blur-xl">
@@ -40,7 +47,7 @@ export function SiteHeader({ nome }: { nome?: string | null }) {
         {logada ? (
           <div className="flex items-center gap-2">
             <nav className="flex items-center gap-1 rounded-2xl bg-muted/40 p-1">
-              {links.map(({ href, label, icon: Icon }) => {
+              {linksVisiveis.map(({ href, label, icon: Icon }) => {
                 const active =
                   href === "/" ? pathname === "/" : pathname.startsWith(href)
                 return (

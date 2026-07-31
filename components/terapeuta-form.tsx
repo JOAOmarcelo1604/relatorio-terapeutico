@@ -54,6 +54,15 @@ export function TerapeutaForm() {
         <SubmitButton />
       </div>
 
+      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+        <input
+          type="checkbox"
+          name="admin"
+          className="size-4 rounded border-input accent-[var(--primary)]"
+        />
+        Tornar administradora (pode gerenciar outras terapeutas)
+      </label>
+
       {state?.erro ? (
         <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {state.erro}

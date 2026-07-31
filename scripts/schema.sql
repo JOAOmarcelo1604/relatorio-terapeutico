@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS terapeutas (
     id           SERIAL       PRIMARY KEY,
     nome         TEXT         NOT NULL UNIQUE,
     senha_hash   TEXT         NOT NULL,
+    admin        BOOLEAN      NOT NULL DEFAULT false,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 

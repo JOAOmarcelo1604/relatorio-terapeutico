@@ -21,6 +21,7 @@ interface ConfirmDeleteProps {
   description: string
   triggerLabel?: string
   compact?: boolean
+  hiddenFields?: Record<string, string>
 }
 
 export function ConfirmDelete({
@@ -30,6 +31,7 @@ export function ConfirmDelete({
   description,
   triggerLabel = "Excluir",
   compact = false,
+  hiddenFields,
 }: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false)
 
@@ -63,6 +65,11 @@ export function ConfirmDelete({
           <DialogClose render={<Button variant="outline">Cancelar</Button>} />
           <form action={action}>
             <input type="hidden" name="id" value={id} />
+            {hiddenFields
+              ? Object.entries(hiddenFields).map(([k, v]) => (
+                  <input key={k} type="hidden" name={k} value={v} />
+                ))
+              : null}
             <Button type="submit" variant="destructive" className="w-full sm:w-auto">
               Sim, excluir
             </Button>

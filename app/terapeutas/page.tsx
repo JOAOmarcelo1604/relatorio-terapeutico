@@ -1,9 +1,10 @@
-import { UserCog, User } from "lucide-react"
-import { requireSessao } from "@/lib/auth"
+import { UserCog, User, ShieldCheck, ShieldMinus, Shield } from "lucide-react"
+import { requireAdmin } from "@/lib/auth"
 import { getTerapeutas } from "@/lib/queries"
-import { excluirTerapeuta } from "@/lib/auth-actions"
+import { alternarAdmin, excluirTerapeuta } from "@/lib/auth-actions"
 import { formatDateBR } from "@/lib/format"
 import type { Terapeuta } from "@/lib/types"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmDelete } from "@/components/confirm-delete"
@@ -13,7 +14,7 @@ import { DbSetupNotice } from "@/components/db-setup-notice"
 export const dynamic = "force-dynamic"
 
 export default async function TerapeutasPage() {
-  const sessao = await requireSessao()
+  const sessao = await requireAdmin()
 
   let terapeutas: Terapeuta[] = []
   let erro: string | null = null
@@ -22,6 +23,8 @@ export default async function TerapeutasPage() {
   } catch (e) {
     erro = e instanceof Error ? e.message : "Erro ao carregar as terapeutas."
   }
+
+  const totalAdmins = terapeutas.filter((t) => t.admin).length
 
   return (
     <div className="space-y-6">
@@ -34,7 +37,7 @@ export default async function TerapeutasPage() {
           Terapeutas
         </h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie quem pode acessar o sistema.
+          Cadastre os acessos e defina quem pode administrar o sistema.
         </p>
       </div>
 
@@ -51,20 +54,34 @@ export default async function TerapeutasPage() {
           <div className="space-y-2">
             {terapeutas.map((t) => {
               const euMesma = t.id === sessao.id
+              const ultimaAdmin = t.admin && totalAdmins <= 1
               return (
                 <Card key={t.id} className="card-premium border-border/60">
                   <CardContent className="flex items-center justify-between gap-3 py-3.5">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <User className="size-4" />
+                      <span
+                        className={
+                          t.admin
+                            ? "flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+                            : "flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+                        }
+                      >
+                        {t.admin ? (
+                          <ShieldCheck className="size-4" />
+                        ) : (
+                          <User className="size-4" />
+                        )}
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate font-medium text-foreground">
+                        <p className="flex flex-wrap items-center gap-2 truncate font-medium text-foreground">
                           {t.nome}
-                          {euMesma ? (
-                            <Badge variant="secondary" className="ml-2 align-middle">
-                              você
+                          {t.admin ? (
+                            <Badge className="bg-primary/15 text-primary">
+                              Admin
                             </Badge>
+                          ) : null}
+                          {euMesma ? (
+                            <Badge variant="secondary">você</Badge>
                           ) : null}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -72,15 +89,56 @@ export default async function TerapeutasPage() {
                         </p>
                       </div>
                     </div>
-                    {terapeutas.length > 1 ? (
-                      <ConfirmDelete
-                        action={excluirTerapeuta}
-                        id={t.id}
-                        compact
-                        title="Remover acesso?"
-                        description={`${t.nome} não poderá mais acessar o sistema.`}
-                      />
-                    ) : null}
+
+                    <div className="flex shrink-0 items-center gap-1">
+                      {t.admin ? (
+                        <form action={alternarAdmin}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <input type="hidden" name="tornar" value="false" />
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="sm"
+                            disabled={ultimaAdmin}
+                            title={
+                              ultimaAdmin
+                                ? "Não é possível rebaixar a última administradora"
+                                : "Rebaixar para terapeuta comum"
+                            }
+                            className="text-muted-foreground"
+                          >
+                            <ShieldMinus className="size-4" />
+                            <span className="hidden sm:inline">Rebaixar</span>
+                          </Button>
+                        </form>
+                      ) : (
+                        <form action={alternarAdmin}>
+                          <input type="hidden" name="id" value={t.id} />
+                          <input type="hidden" name="tornar" value="true" />
+                          <Button
+                            type="submit"
+                            variant="ghost"
+                            size="sm"
+                            title="Promover a administradora"
+                            className="text-primary"
+                          >
+                            <Shield className="size-4" />
+                            <span className="hidden sm:inline">Tornar admin</span>
+                          </Button>
+                        </form>
+                      )}
+
+                      {!ultimaAdmin ? (
+                        <ConfirmDelete
+                          action={excluirTerapeuta}
+                          id={t.id}
+                          compact
+                          hiddenFields={{ admin: String(t.admin) }}
+                          title="Remover acesso?"
+                          description={`${t.nome} não poderá mais acessar o sistema.`}
+                        />
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               )

@@ -17,3 +17,10 @@ export async function requireSessao(): Promise<Sessao> {
   if (!sessao) redirect("/login")
   return sessao
 }
+
+/** Garante sessão de administradora; senão redireciona para a home. */
+export async function requireAdmin(): Promise<Sessao> {
+  const sessao = await requireSessao()
+  if (!sessao.admin) redirect("/")
+  return sessao
+}

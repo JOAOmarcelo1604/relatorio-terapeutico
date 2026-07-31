@@ -3,6 +3,7 @@ export type FeedbackStatus = "normal" | "faltou"
 export interface Terapeuta {
   id: number
   nome: string
+  admin: boolean
   created_at: string
 }
 

@@ -30,7 +30,7 @@ export default async function RootLayout({
   return (
     <html lang="pt-BR" className={`light ${inter.variable} ${nunito.variable}`}>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <SiteHeader nome={sessao?.nome} />
+        <SiteHeader nome={sessao?.nome} admin={sessao?.admin} />
         <main className="mx-auto w-full max-w-3xl px-4 pb-24 pt-6">{children}</main>
         <Toaster position="top-center" richColors />
         {process.env.NODE_ENV === "production" && <Analytics />}

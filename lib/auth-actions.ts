@@ -11,7 +11,9 @@ import {
 import { hashSenha, verificarSenha } from "./password"
 import { getSessao } from "./auth"
 import {
+  contarAdmins,
   contarTerapeutas,
+  definirAdmin,
   excluirTerapeutaDB,
   getTerapeutaComHash,
   inserirTerapeuta,
@@ -22,9 +24,9 @@ export interface FormState {
   ok?: boolean
 }
 
-async function definirCookieSessao(id: number, nome: string) {
+async function definirCookieSessao(id: number, nome: string, admin: boolean) {
   const exp = Date.now() + DURACAO_SESSAO_MS
-  const token = await assinarToken({ id, nome, exp })
+  const token = await assinarToken({ id, nome, admin, exp })
   const store = await cookies()
   store.set(COOKIE_SESSAO, token, {
     httpOnly: true,
@@ -54,7 +56,7 @@ export async function entrar(
     return { erro: "Nome ou senha inválidos." }
   }
 
-  await definirCookieSessao(terapeuta.id, terapeuta.nome)
+  await definirCookieSessao(terapeuta.id, terapeuta.nome, terapeuta.admin)
   redirect("/")
 }
 
@@ -71,25 +73,29 @@ export async function criarPrimeiroAcesso(
   if ("erro" in validacao) return validacao
 
   const hash = await hashSenha(validacao.senha)
-  const nova = await inserirTerapeuta(validacao.nome, hash)
-  await definirCookieSessao(nova.id, nova.nome)
+  // A primeira conta é sempre administradora.
+  const nova = await inserirTerapeuta(validacao.nome, hash, true)
+  await definirCookieSessao(nova.id, nova.nome, true)
   redirect("/")
 }
 
-/** Adiciona uma nova terapeuta (requer estar logada). */
+/** Adiciona uma nova terapeuta (somente administradoras). */
 export async function adicionarTerapeuta(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const sessao = await getSessao()
   if (!sessao) return { erro: "Sessão expirada. Faça login novamente." }
+  if (!sessao.admin) return { erro: "Apenas administradoras podem cadastrar." }
 
   const validacao = validarCredenciais(formData)
   if ("erro" in validacao) return validacao
 
+  const comoAdmin = formData.get("admin") === "on"
+
   try {
     const hash = await hashSenha(validacao.senha)
-    await inserirTerapeuta(validacao.nome, hash)
+    await inserirTerapeuta(validacao.nome, hash, comoAdmin)
   } catch (e) {
     const msg = e instanceof Error ? e.message : ""
     if (msg.includes("duplicate") || msg.includes("unique")) {
@@ -102,15 +108,29 @@ export async function adicionarTerapeuta(
   return { ok: true }
 }
 
-/** Remove uma terapeuta (não permite remover a última). */
+/** Remove uma terapeuta (somente admin; não permite ficar sem admin). */
 export async function excluirTerapeuta(formData: FormData): Promise<void> {
   const sessao = await getSessao()
-  if (!sessao) return
+  if (!sessao?.admin) return
   const id = Number(formData.get("id"))
   if (!id) return
-  const total = await contarTerapeutas()
-  if (total <= 1) return // sempre manter ao menos um acesso
+  const adminAlvo = formData.get("admin") === "true"
+  // Impede remover a última administradora do sistema.
+  if (adminAlvo && (await contarAdmins()) <= 1) return
   await excluirTerapeutaDB(id)
+  revalidatePath("/terapeutas")
+}
+
+/** Promove ou rebaixa uma terapeuta a administradora (somente admin). */
+export async function alternarAdmin(formData: FormData): Promise<void> {
+  const sessao = await getSessao()
+  if (!sessao?.admin) return
+  const id = Number(formData.get("id"))
+  const tornarAdmin = formData.get("tornar") === "true"
+  if (!id) return
+  // Impede que a última administradora se rebaixe.
+  if (!tornarAdmin && (await contarAdmins()) <= 1) return
+  await definirAdmin(id, tornarAdmin)
   revalidatePath("/terapeutas")
 }
 

@@ -6,6 +6,7 @@
 export interface Sessao {
   id: number
   nome: string
+  admin: boolean
   exp: number // epoch em ms
 }
 

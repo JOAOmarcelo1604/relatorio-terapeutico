@@ -15,18 +15,27 @@ export async function contarTerapeutas(): Promise<number> {
 
 export async function getTerapeutas(): Promise<Terapeuta[]> {
   return query<Terapeuta>(
-    `SELECT id, nome,
+    `SELECT id, nome, admin,
             to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at
      FROM terapeutas
-     ORDER BY nome ASC`,
+     ORDER BY admin DESC, nome ASC`,
   )
 }
 
-export async function getTerapeutaComHash(
-  nome: string,
-): Promise<{ id: number; nome: string; senha_hash: string } | null> {
-  const rows = await query<{ id: number; nome: string; senha_hash: string }>(
-    `SELECT id, nome, senha_hash FROM terapeutas WHERE lower(nome) = lower($1)`,
+export async function getTerapeutaComHash(nome: string): Promise<{
+  id: number
+  nome: string
+  admin: boolean
+  senha_hash: string
+} | null> {
+  const rows = await query<{
+    id: number
+    nome: string
+    admin: boolean
+    senha_hash: string
+  }>(
+    `SELECT id, nome, admin, senha_hash
+     FROM terapeutas WHERE lower(nome) = lower($1)`,
     [nome],
   )
   return rows[0] ?? null
@@ -35,15 +44,27 @@ export async function getTerapeutaComHash(
 export async function inserirTerapeuta(
   nome: string,
   senhaHash: string,
+  admin = false,
 ): Promise<Terapeuta> {
   const rows = await query<Terapeuta>(
-    `INSERT INTO terapeutas (nome, senha_hash)
-     VALUES ($1, $2)
-     RETURNING id, nome,
+    `INSERT INTO terapeutas (nome, senha_hash, admin)
+     VALUES ($1, $2, $3)
+     RETURNING id, nome, admin,
                to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at`,
-    [nome, senhaHash],
+    [nome, senhaHash, admin],
   )
   return rows[0]
+}
+
+export async function definirAdmin(id: number, admin: boolean): Promise<void> {
+  await query(`UPDATE terapeutas SET admin = $2 WHERE id = $1`, [id, admin])
+}
+
+export async function contarAdmins(): Promise<number> {
+  const rows = await query<{ total: number }>(
+    `SELECT count(*)::int AS total FROM terapeutas WHERE admin = true`,
+  )
+  return rows[0]?.total ?? 0
 }
 
 export async function excluirTerapeutaDB(id: number): Promise<void> {
