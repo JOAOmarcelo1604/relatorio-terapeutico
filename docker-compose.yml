@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: relatorio-terapeutico-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: relatorio
+      POSTGRES_PASSWORD: relatorio
+      POSTGRES_DB: relatorio_terapeutico
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Roda o schema automaticamente na PRIMEIRA vez que o container sobe
+      # (quando o volume pgdata ainda está vazio).
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relatorio -d relatorio_terapeutico"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: relatorio-terapeutico:latest
+    container_name: relatorio-terapeutico-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Conecta ao Postgres pela rede interna do compose (host = nome do serviço "db")
+      DATABASE_URL: postgres://relatorio:relatorio@db:5432/relatorio_terapeutico
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
