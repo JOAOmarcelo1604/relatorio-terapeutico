@@ -16,9 +16,12 @@ services:
       - ./scripts/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U relatorio -d relatorio_terapeutico"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      # Dá tempo do Postgres inicializar o banco e rodar o schema.sql na
+      # primeira subida antes de começar a checar a saúde.
+      start_period: 60s
 
   app:
     build:
