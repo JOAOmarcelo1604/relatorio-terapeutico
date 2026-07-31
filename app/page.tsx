@@ -45,17 +45,30 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Feedbacks</h1>
-          <p className="text-sm text-muted-foreground">
-            Registros diários de evolução, do mais recente ao mais antigo.
-          </p>
+      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-6 shadow-soft sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-gradient-brand opacity-10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-gradient-accent opacity-10 blur-2xl" />
+        <div className="relative flex items-end justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Painel
+            </span>
+            <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground">
+              Feedbacks diários
+            </h1>
+            <p className="max-w-md text-sm text-muted-foreground">
+              Registre a evolução do dia e gere o texto prontinho para enviar aos pais.
+            </p>
+          </div>
+          <Button
+            size="lg"
+            className="bg-gradient-brand shadow-soft hover:opacity-95"
+            render={<Link href="/feedbacks/novo" />}
+          >
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Novo feedback</span>
+          </Button>
         </div>
-        <Button render={<Link href="/feedbacks/novo" />}>
-          <Plus className="size-4" />
-          <span className="hidden sm:inline">Novo feedback</span>
-        </Button>
       </div>
 
       {erro ? (

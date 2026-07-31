@@ -9,6 +9,7 @@ import {
   CopyPlus,
   Loader2,
   Plus,
+  Sparkles,
   Trash2,
 } from "lucide-react"
 import { salvarFeedback } from "@/lib/actions"
@@ -76,6 +77,45 @@ export function FeedbackForm({ pacientes, modelos, feedback }: FeedbackFormProps
       ),
     [modelos, pacienteId, feedback?.id],
   )
+
+  /** Ordena valores por frequência (mais usados primeiro), removendo repetidos. */
+  function porFrequencia(valores: string[]): string[] {
+    const contagem = new Map<string, number>()
+    for (const bruto of valores) {
+      const v = bruto.trim()
+      if (!v) continue
+      contagem.set(v, (contagem.get(v) ?? 0) + 1)
+    }
+    return [...contagem.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([valor]) => valor)
+  }
+
+  const atividadesFrequentes = useMemo(
+    () =>
+      porFrequencia(modelosDoPaciente.flatMap((m) => m.atividades)).slice(0, 12),
+    [modelosDoPaciente],
+  )
+
+  const objetivosFrequentes = useMemo(
+    () =>
+      porFrequencia(
+        modelosDoPaciente.map((m) => m.objetivos ?? ""),
+      ).slice(0, 6),
+    [modelosDoPaciente],
+  )
+
+  function adicionarAtividadeValor(valor: string) {
+    setAtividades((prev) => {
+      if (prev.some((a) => a.trim() === valor)) return prev
+      const base = prev.length === 1 && !prev[0].trim() ? [] : prev
+      return [...base, valor]
+    })
+  }
+
+  function aplicarObjetivo(valor: string) {
+    setObjetivos(valor)
+  }
 
   function atualizarAtividade(index: number, valor: string) {
     setAtividades((prev) => prev.map((a, i) => (i === index ? valor : a)))
@@ -258,6 +298,40 @@ export function FeedbackForm({ pacientes, modelos, feedback }: FeedbackFormProps
             <CardContent className="space-y-5 pt-6">
               <div className="space-y-2">
                 <Label>Atividades</Label>
+
+                {atividadesFrequentes.length > 0 ? (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                      <Sparkles className="size-3.5" />
+                      Atividades frequentes deste paciente
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {atividadesFrequentes.map((valor) => {
+                        const jaAdicionada = atividades.some(
+                          (a) => a.trim() === valor,
+                        )
+                        return (
+                          <button
+                            key={valor}
+                            type="button"
+                            onClick={() => adicionarAtividadeValor(valor)}
+                            disabled={jaAdicionada}
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                              jaAdicionada
+                                ? "cursor-default border-primary/30 bg-primary/15 text-primary/70"
+                                : "border-border bg-card text-foreground hover:border-primary hover:bg-primary/10 hover:text-primary",
+                            )}
+                          >
+                            {!jaAdicionada ? <Plus className="size-3" /> : null}
+                            {valor}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
                   {atividades.map((atividade, index) => (
                     <div key={index} className="flex items-center gap-2">
@@ -316,6 +390,34 @@ export function FeedbackForm({ pacientes, modelos, feedback }: FeedbackFormProps
 
               <div className="space-y-2">
                 <Label htmlFor="objetivos">Objetivos</Label>
+
+                {objetivosFrequentes.length > 0 ? (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                      <Sparkles className="size-3.5" />
+                      Objetivos já usados (clique para preencher)
+                    </p>
+                    <div className="space-y-1.5">
+                      {objetivosFrequentes.map((valor) => (
+                        <button
+                          key={valor}
+                          type="button"
+                          onClick={() => aplicarObjetivo(valor)}
+                          title={valor}
+                          className={cn(
+                            "block w-full rounded-lg border px-3 py-2 text-left text-xs leading-relaxed transition-colors",
+                            objetivos.trim() === valor
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-card text-muted-foreground hover:border-primary hover:bg-primary/5 hover:text-foreground",
+                          )}
+                        >
+                          <span className="line-clamp-2">{valor}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <Textarea
                   id="objetivos"
                   name="objetivos"

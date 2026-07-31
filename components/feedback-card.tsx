@@ -18,7 +18,13 @@ export function FeedbackCard({
   const faltou = feedback.status === "faltou"
 
   return (
-    <Card className={faltou ? "border-destructive/30 bg-destructive/5" : undefined}>
+    <Card
+      className={
+        faltou
+          ? "card-premium border-destructive/30 bg-destructive/5"
+          : "card-premium border-border/60"
+      }
+    >
       <CardContent className="space-y-3 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
