@@ -11,6 +11,17 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
+--  Tabela: terapeutas (login do sistema)
+--    - senha_hash: hash scrypt no formato "salt:hash" (nunca a senha pura)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS terapeutas (
+    id           SERIAL       PRIMARY KEY,
+    nome         TEXT         NOT NULL UNIQUE,
+    senha_hash   TEXT         NOT NULL,
+    created_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+-- ----------------------------------------------------------------------------
 --  Tabela: pacientes
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS pacientes (

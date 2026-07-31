@@ -1,6 +1,54 @@
 import "server-only"
 import { query } from "./db"
-import type { Feedback, FeedbackFilters, Paciente } from "./types"
+import type { Feedback, FeedbackFilters, Paciente, Terapeuta } from "./types"
+
+// ---------------------------------------------------------------------------
+// Terapeutas (login)
+// ---------------------------------------------------------------------------
+
+export async function contarTerapeutas(): Promise<number> {
+  const rows = await query<{ total: number }>(
+    `SELECT count(*)::int AS total FROM terapeutas`,
+  )
+  return rows[0]?.total ?? 0
+}
+
+export async function getTerapeutas(): Promise<Terapeuta[]> {
+  return query<Terapeuta>(
+    `SELECT id, nome,
+            to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at
+     FROM terapeutas
+     ORDER BY nome ASC`,
+  )
+}
+
+export async function getTerapeutaComHash(
+  nome: string,
+): Promise<{ id: number; nome: string; senha_hash: string } | null> {
+  const rows = await query<{ id: number; nome: string; senha_hash: string }>(
+    `SELECT id, nome, senha_hash FROM terapeutas WHERE lower(nome) = lower($1)`,
+    [nome],
+  )
+  return rows[0] ?? null
+}
+
+export async function inserirTerapeuta(
+  nome: string,
+  senhaHash: string,
+): Promise<Terapeuta> {
+  const rows = await query<Terapeuta>(
+    `INSERT INTO terapeutas (nome, senha_hash)
+     VALUES ($1, $2)
+     RETURNING id, nome,
+               to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS created_at`,
+    [nome, senhaHash],
+  )
+  return rows[0]
+}
+
+export async function excluirTerapeutaDB(id: number): Promise<void> {
+  await query(`DELETE FROM terapeutas WHERE id = $1`, [id])
+}
 
 // ---------------------------------------------------------------------------
 // Pacientes

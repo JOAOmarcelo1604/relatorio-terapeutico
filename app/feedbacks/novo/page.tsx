@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { getModelos, getPacientes } from "@/lib/queries"
+import { getSessao } from "@/lib/auth"
 import type { Feedback, Paciente } from "@/lib/types"
 import { FeedbackForm } from "@/components/feedback-form"
 import { DbSetupNotice } from "@/components/db-setup-notice"
@@ -8,6 +9,7 @@ import { DbSetupNotice } from "@/components/db-setup-notice"
 export const dynamic = "force-dynamic"
 
 export default async function NovoFeedbackPage() {
+  const sessao = await getSessao()
   let pacientes: Paciente[] = []
   let modelos: Feedback[] = []
   let erro: string | null = null
@@ -35,7 +37,11 @@ export default async function NovoFeedbackPage() {
       {erro ? (
         <DbSetupNotice detail={erro} />
       ) : (
-        <FeedbackForm pacientes={pacientes} modelos={modelos} />
+        <FeedbackForm
+          pacientes={pacientes}
+          modelos={modelos}
+          terapeutaPadrao={sessao?.nome}
+        />
       )}
     </div>
   )

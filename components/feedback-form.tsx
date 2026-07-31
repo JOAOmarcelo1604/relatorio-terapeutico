@@ -51,16 +51,24 @@ interface FeedbackFormProps {
   pacientes: Paciente[]
   modelos: Feedback[]
   feedback?: Feedback
+  terapeutaPadrao?: string
 }
 
-export function FeedbackForm({ pacientes, modelos, feedback }: FeedbackFormProps) {
+export function FeedbackForm({
+  pacientes,
+  modelos,
+  feedback,
+  terapeutaPadrao,
+}: FeedbackFormProps) {
   const editando = Boolean(feedback)
 
   const [pacienteId, setPacienteId] = useState(
     feedback ? String(feedback.paciente_id) : "",
   )
   const [data, setData] = useState(feedback?.data ?? todayISO())
-  const [terapeuta, setTerapeuta] = useState(feedback?.terapeuta ?? "")
+  const [terapeuta, setTerapeuta] = useState(
+    feedback?.terapeuta ?? terapeutaPadrao ?? "",
+  )
   const [status, setStatus] = useState<FeedbackStatus>(feedback?.status ?? "normal")
   const [atividades, setAtividades] = useState<string[]>(
     feedback && feedback.atividades.length > 0 ? feedback.atividades : [""],
@@ -163,7 +171,15 @@ export function FeedbackForm({ pacientes, modelos, feedback }: FeedbackFormProps
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label>Paciente *</Label>
-              <Select value={pacienteId} onValueChange={selecionarPaciente} required>
+              <Select
+                value={pacienteId}
+                onValueChange={selecionarPaciente}
+                required
+                items={pacientes.map((p) => ({
+                  value: String(p.id),
+                  label: p.nome,
+                }))}
+              >
                 <SelectTrigger className="h-11 w-full">
                   <SelectValue placeholder="Selecione o paciente" />
                 </SelectTrigger>

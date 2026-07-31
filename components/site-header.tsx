@@ -2,16 +2,25 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Users, HeartHandshake } from "lucide-react"
+import {
+  ClipboardList,
+  Users,
+  UserCog,
+  HeartHandshake,
+  LogOut,
+} from "lucide-react"
+import { sair } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
 
 const links = [
   { href: "/", label: "Feedbacks", icon: ClipboardList },
   { href: "/pacientes", label: "Pacientes", icon: Users },
+  { href: "/terapeutas", label: "Terapeutas", icon: UserCog },
 ]
 
-export function SiteHeader() {
+export function SiteHeader({ nome }: { nome?: string | null }) {
   const pathname = usePathname()
+  const logada = Boolean(nome)
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/70 backdrop-blur-xl">
@@ -28,27 +37,43 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1 rounded-2xl bg-muted/40 p-1">
-          {links.map(({ href, label, icon: Icon }) => {
-            const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
-                  active
-                    ? "bg-card text-primary shadow-soft"
-                    : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
-                )}
+        {logada ? (
+          <div className="flex items-center gap-2">
+            <nav className="flex items-center gap-1 rounded-2xl bg-muted/40 p-1">
+              {links.map(({ href, label, icon: Icon }) => {
+                const active =
+                  href === "/" ? pathname === "/" : pathname.startsWith(href)
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+                      active
+                        ? "bg-card text-primary shadow-soft"
+                        : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    <span className="hidden sm:inline">{label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+
+            <form action={sair}>
+              <button
+                type="submit"
+                title={`Sair (${nome})`}
+                aria-label="Sair"
+                className="flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
               >
-                <Icon className="size-4" />
-                <span className="hidden sm:inline">{label}</span>
-              </Link>
-            )
-          })}
-        </nav>
+                <LogOut className="size-4" />
+                <span className="hidden md:inline">Sair</span>
+              </button>
+            </form>
+          </div>
+        ) : null}
       </div>
     </header>
   )

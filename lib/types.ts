@@ -1,5 +1,11 @@
 export type FeedbackStatus = "normal" | "faltou"
 
+export interface Terapeuta {
+  id: number
+  nome: string
+  created_at: string
+}
+
 export interface Paciente {
   id: number
   nome: string

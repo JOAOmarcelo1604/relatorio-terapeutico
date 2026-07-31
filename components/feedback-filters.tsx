@@ -57,6 +57,10 @@ export function FeedbackFilters({ pacientes }: { pacientes: Paciente[] }) {
           <Select
             value={pacienteId || "todos"}
             onValueChange={(v) => update({ paciente: !v || v === "todos" ? "" : String(v) })}
+            items={[
+              { value: "todos", label: "Todos os pacientes" },
+              ...pacientes.map((p) => ({ value: String(p.id), label: p.nome })),
+            ]}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Todos os pacientes" />
