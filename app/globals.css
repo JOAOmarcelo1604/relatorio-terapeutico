@@ -220,3 +220,23 @@
       0 12px 30px -12px oklch(0.55 0.12 182 / 0.35);
   }
 }
+
+@media print {
+  header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .print-bloco {
+    break-inside: avoid;
+  }
+  .print-quebra {
+    break-before: page;
+  }
+}

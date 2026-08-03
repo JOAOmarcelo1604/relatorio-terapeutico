@@ -5,7 +5,7 @@ import type { Feedback, Paciente } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FeedbackFilters } from "@/components/feedback-filters"
-import { FeedbackCard } from "@/components/feedback-card"
+import { FeedbackList } from "@/components/feedback-list"
 import { DbSetupNotice } from "@/components/db-setup-notice"
 
 export const dynamic = "force-dynamic"
@@ -104,11 +104,7 @@ export default async function DashboardPage({
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {feedbacks.map((f) => (
-                <FeedbackCard key={f.id} feedback={f} />
-              ))}
-            </div>
+            <FeedbackList feedbacks={feedbacks} />
           )}
         </>
       )}

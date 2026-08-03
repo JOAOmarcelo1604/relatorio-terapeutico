@@ -191,6 +191,16 @@ export async function getModelos(): Promise<Feedback[]> {
   return rows.map(mapFeedbackRow)
 }
 
+/** Busca feedbacks por uma lista de ids (usado na impressão). */
+export async function getFeedbacksPorIds(ids: number[]): Promise<Feedback[]> {
+  if (ids.length === 0) return []
+  const rows = await query<FeedbackRow>(
+    `${FEEDBACK_SELECT} WHERE f.id = ANY($1) ORDER BY p.nome ASC, f.data ASC`,
+    [ids],
+  )
+  return rows.map(mapFeedbackRow)
+}
+
 /** Feedbacks de um paciente dentro de um intervalo (usado no export semanal). */
 export async function getFeedbacksSemana(
   pacienteId: number,

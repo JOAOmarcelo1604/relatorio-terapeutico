@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { CalendarDays, FileText, Pencil } from "lucide-react"
 import type { Feedback } from "@/lib/types"
